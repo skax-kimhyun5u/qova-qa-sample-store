@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orbit Supply</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#products" aria-label="Orbit Supply 홈">Orbit Supply</a>
+      <button id="cartButton" class="cart-button" type="button" aria-controls="cartPanel">
+        장바구니 <span id="cartCount" aria-label="장바구니 상품 수">0</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="heroTitle">
+        <p class="eyebrow">WORKSPACE ESSENTIALS</p>
+        <h1 id="heroTitle">집중을 돕는 작은 도구</h1>
+        <p>테스트하기 좋은, 단순하고 예측 가능한 샘플 스토어입니다.</p>
+      </section>
+
+      <section id="products" class="catalog" aria-labelledby="catalogTitle">
+        <div class="catalog-heading">
+          <div>
+            <p class="eyebrow">CATALOG</p>
+            <h2 id="catalogTitle">상품 둘러보기</h2>
+          </div>
+          <label class="search-field">
+            <span>상품 검색</span>
+            <input id="productSearch" type="search" placeholder="예: 노트" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="filters" role="group" aria-label="상품 카테고리">
+          <button class="filter active" type="button" data-category="all">전체</button>
+          <button class="filter" type="button" data-category="desk">데스크</button>
+          <button class="filter" type="button" data-category="paper">문구</button>
+          <button class="filter" type="button" data-category="light">조명</button>
+        </div>
+
+        <p id="resultSummary" class="result-summary" aria-live="polite"></p>
+        <div id="productGrid" class="product-grid"></div>
+      </section>
+    </main>
+
+    <aside id="cartPanel" class="cart-panel" aria-labelledby="cartTitle" aria-hidden="true">
+      <div class="cart-header">
+        <h2 id="cartTitle">장바구니</h2>
+        <button id="closeCart" class="icon-button" type="button" aria-label="장바구니 닫기">×</button>
+      </div>
+      <div id="cartItems" class="cart-items"></div>
+      <div class="cart-footer">
+        <p>합계 <strong id="cartTotal">₩0</strong></p>
+        <button id="checkoutButton" class="primary" type="button" disabled>주문하기</button>
+      </div>
+    </aside>
+    <div id="scrim" class="scrim" hidden></div>
+
+    <dialog id="checkoutDialog" aria-labelledby="checkoutTitle">
+      <form id="checkoutForm" method="dialog" novalidate>
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">CHECKOUT</p>
+            <h2 id="checkoutTitle">주문 정보</h2>
+          </div>
+          <button id="closeCheckout" class="icon-button" type="button" aria-label="주문 창 닫기">×</button>
+        </div>
+        <label>
+          이메일
+          <input id="email" name="email" type="email" placeholder="qa@example.com" required />
+        </label>
+        <p id="emailError" class="error" role="alert"></p>
+        <button class="primary" type="submit">주문 확정</button>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
+

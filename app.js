@@ -7,7 +7,7 @@ const products = [
   { id: "beam-light", name: "빔 모니터 라이트", category: "light", price: 68000, description: "화면 반사를 줄이는 비대칭 데스크 조명" },
 ];
 
-const state = { category: "all", query: "", cart: new Map() };
+const state = { category: "all", query: "", cart: new Map(), hiddenProductIds: new Set(), auditCount: 0 };
 const productGrid = document.querySelector("#productGrid");
 const productSearch = document.querySelector("#productSearch");
 const resultSummary = document.querySelector("#resultSummary");
@@ -22,6 +22,10 @@ const email = document.querySelector("#email");
 const emailError = document.querySelector("#emailError");
 const scrim = document.querySelector("#scrim");
 const toast = document.querySelector("#toast");
+const sessionStatus = document.querySelector("#sessionStatus");
+const permissionResult = document.querySelector("#permissionResult");
+const auditSummary = document.querySelector("#auditSummary");
+const toggleHaloVisibility = document.querySelector("#toggleHaloVisibility");
 
 function currency(value) {
   return new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(value);
@@ -30,10 +34,26 @@ function currency(value) {
 function visibleProducts() {
   const query = state.query.trim().toLocaleLowerCase("ko-KR");
   return products.filter((product) => {
+    if (state.hiddenProductIds.has(product.id)) return false;
     const matchesCategory = state.category === "all" || product.category === state.category;
     const matchesQuery = !query || `${product.name} ${product.description}`.toLocaleLowerCase("ko-KR").includes(query);
     return matchesCategory && matchesQuery;
   });
+}
+
+function renderInventory() {
+  const hidden = state.hiddenProductIds.has("halo-lamp");
+  toggleHaloVisibility.textContent = hidden ? "상품 다시 공개" : "상품 숨기기";
+  auditSummary.textContent = `감사 기록 ${state.auditCount}건`;
+  renderProducts();
+}
+
+async function loadInventory() {
+  const response = await fetch("/api/inventory");
+  const inventory = await response.json();
+  state.hiddenProductIds = new Set(inventory.hiddenProductIds);
+  state.auditCount = inventory.auditLog.length;
+  renderInventory();
 }
 
 function renderProducts() {
@@ -144,6 +164,44 @@ checkoutForm.addEventListener("submit", (event) => {
   checkoutForm.reset();
 });
 
+document.querySelectorAll("[data-actor]").forEach((button) => {
+  button.addEventListener("click", async () => {
+    permissionResult.textContent = "";
+    toggleHaloVisibility.hidden = true;
+    const response = await fetch("/api/session", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ actorId: button.dataset.actor }),
+    });
+    const session = await response.json();
+    if (!response.ok) {
+      permissionResult.textContent = session.error;
+      return;
+    }
+    sessionStatus.textContent = `${session.name} 세션 · ${session.role}`;
+    toggleHaloVisibility.hidden = false;
+  });
+});
+
+toggleHaloVisibility.addEventListener("click", async () => {
+  permissionResult.textContent = "";
+  const hidden = !state.hiddenProductIds.has("halo-lamp");
+  const response = await fetch("/api/inventory/visibility", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ productId: "halo-lamp", hidden }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    permissionResult.textContent = result.error;
+    return;
+  }
+  state.hiddenProductIds = new Set(result.hiddenProductIds);
+  state.auditCount += 1;
+  permissionResult.textContent = hidden ? "관리자 권한으로 상품을 숨겼습니다." : "관리자 권한으로 상품을 다시 공개했습니다.";
+  renderInventory();
+});
+
 renderProducts();
 renderCart();
-
+loadInventory();

@@ -42,6 +42,24 @@ test("does not expose files outside the repository root", async () => {
   assert.equal(response.status, 404);
 });
 
+test("permission session fixtures expose stable actor and role contracts", async () => {
+  const viewer = await signIn("viewer");
+  const manager = await signIn("manager");
+
+  assert.match(viewer.cookie, /^orbit_session=/);
+  assert.deepEqual(await viewer.response.json(), {
+    actorId: "viewer",
+    name: "QA 조회자",
+    role: "viewer",
+  });
+  assert.match(manager.cookie, /^orbit_session=/);
+  assert.deepEqual(await manager.response.json(), {
+    actorId: "manager",
+    name: "재고 관리자",
+    role: "inventoryManager",
+  });
+});
+
 test("viewer cannot change inventory visibility and no audit record is written", async () => {
   const { cookie } = await signIn("viewer");
   const denied = await fetch(`${baseUrl()}/api/inventory/visibility`, {
